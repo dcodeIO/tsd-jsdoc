@@ -145,7 +145,7 @@ function queueInterfaceForObjectType(element)
 }
 
 function writeInterfaceForObjectType(element)
-{   
+{
     let prefix = env.conf.templates.jsdoc2tsd && env.conf.templates.jsdoc2tsd.interfacePrefix;
 
     if (!prefix)
