@@ -270,15 +270,27 @@ function writeFunctionProto(element, isConstructor, isType)
     if (!isConstructor)
     {
         write(isType ? ' => ' : ': ');
-
-        if (element.returns && element.returns.length)
-            write(`${getTypeName(element.returns[0])}`);
+        var typeName;
+        if (element.returns && element.returns.length && (typeName = getTypeName(element.returns[0])) !== 'undefined')
+            write(typeName);
         else
             write('void');
     }
 
     // done
     write(';');
+}
+
+function replaceRecursive(name, re, fn) {
+    var found;
+    do {
+        found = false;
+        name = name.replace(re, function() {
+            found = true;
+            return fn.apply(null, arguments);
+        });
+    } while (found);
+    return name;
 }
 
 function getTypeName(obj)
@@ -294,8 +306,15 @@ function getTypeName(obj)
     }
 
     name = name.trim();
-    name = name.replace(/Array\.?<([^>]*)>/gi, '$1[]');
-    name = name.replace(/Object\.?<([^,]*), ?([^>]*)>/gi, '{ [k: $1]: $2 }');
+    name = replaceRecursive(name, /Promise\.<([^>]*)>/gi, function($0, $1) {
+        return "Promise<" + $1 + ">";
+    });
+    name = replaceRecursive(name, /Array\.?<([^>]*)>/gi, function($0, $1) {
+        return $1 + "[]";
+    });
+    name = replaceRecursive(name, /Object\.?<([^,]*), *([^>]*)>/gi, function($0, $1, $2) {
+        return '{ [k: ' + $1 + ']: ' + $2 + ' }';
+    });
     name = name.replace(/\*|mixed/g, 'any');
     name = name.replace(/(^|[^\w])function(?:\(\))?([^\w]|$)/gi, '$1(() => any)$2');
     name = name.replace(/object/g, 'Object');
