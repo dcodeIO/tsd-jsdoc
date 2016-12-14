@@ -58,7 +58,8 @@ module.exports.publish = function publishTsd(data, opts)
         writeInterfaceForObjectType(element);
     }
 
-    ostream.end();
+    if (opts.destination !== 'console')
+        ostream.end();
 };
 
 function parse(docs, parent)
